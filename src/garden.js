@@ -21,16 +21,9 @@ export function createGarden() {
     controls: null,
     mesh: null,
     posts: [],
-    postCountEl: null,
     hover: null,
     detail: null,
   };
-
-  function updatePostCount(count) {
-    if (state.postCountEl) {
-      state.postCountEl.textContent = String(count);
-    }
-  }
 
   async function renderPosts(posts, { mode = 'scatter' } = {}) {
     const atlas = await buildAtlas(posts);
@@ -82,8 +75,7 @@ export function createGarden() {
   }
 
   return {
-    async init({ postCountEl }) {
-      state.postCountEl = postCountEl;
+    async init() {
       const posts = await fetchPosts();
 
       const { scene, camera, renderer } = createScene();
@@ -103,7 +95,6 @@ export function createGarden() {
         detail: state.detail,
       });
 
-      updatePostCount(posts.length);
       await renderPosts(posts, { mode: 'scatter' });
 
       return renderer;
@@ -111,7 +102,6 @@ export function createGarden() {
 
     async addPost() {
       const posts = await fetchPosts();
-      updatePostCount(posts.length);
       await renderPosts(posts, { mode: 'add-latest' });
     },
 

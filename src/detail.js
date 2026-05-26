@@ -1,10 +1,5 @@
 import gsap from 'gsap';
-
-const TYPE_LABELS = {
-  link: 'Link',
-  image: 'Image',
-  text: 'Text',
-};
+import { TYPE_LABELS, formatAddedLabel } from './postMeta.js';
 
 const MOTION = {
   focusOpen: { duration: 0.82, ease: 'sine.inOut' },
@@ -27,7 +22,10 @@ export function createDetailView({ getControls, getUniforms }) {
       <button type="button" class="detail__close" aria-label="Close">×</button>
       <div class="detail__media" data-media hidden></div>
       <div class="detail__body">
-        <p class="detail__type" data-type></p>
+        <div class="detail__meta">
+          <p class="detail__type" data-type></p>
+          <p class="detail__date" data-date hidden></p>
+        </div>
         <h2 class="detail__title" data-title></h2>
         <p class="detail__excerpt" data-excerpt></p>
         <a class="detail__link" data-link target="_blank" rel="noopener noreferrer" hidden>Open link →</a>
@@ -40,6 +38,7 @@ export function createDetailView({ getControls, getUniforms }) {
   const panel = root.querySelector('[data-panel]');
   const media = root.querySelector('[data-media]');
   const typeEl = root.querySelector('[data-type]');
+  const dateEl = root.querySelector('[data-date]');
   const titleEl = root.querySelector('[data-title]');
   const excerptEl = root.querySelector('[data-excerpt]');
   const linkEl = root.querySelector('[data-link]');
@@ -66,6 +65,11 @@ export function createDetailView({ getControls, getUniforms }) {
 
   function populate(post) {
     typeEl.textContent = TYPE_LABELS[post.type] || 'Post';
+
+    const addedLabel = formatAddedLabel(post.createdAt);
+    dateEl.textContent = addedLabel;
+    dateEl.hidden = !addedLabel;
+
     titleEl.textContent = post.title;
 
     const excerpt = post.excerpt || (post.type === 'link' ? post.url : '');
@@ -91,7 +95,9 @@ export function createDetailView({ getControls, getUniforms }) {
       if (img) items.push(img);
     }
 
-    items.push(typeEl, titleEl);
+    items.push(typeEl);
+    if (!dateEl.hidden) items.push(dateEl);
+    items.push(titleEl);
     if (!excerptEl.hidden) items.push(excerptEl);
     if (!linkEl.hidden) items.push(linkEl);
 

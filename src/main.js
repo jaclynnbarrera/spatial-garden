@@ -8,26 +8,28 @@ function mountCanvas(renderer) {
   app.appendChild(renderer.domElement);
 }
 
-function mountHud(postCountEl) {
+function mountHud() {
   const existing = document.querySelector('.hud');
   if (existing) existing.remove();
 
   const hud = document.createElement('div');
   hud.className = 'hud';
   hud.innerHTML = `
-    <p class="hud__eyebrow">Spatial Garden</p>
-    <h1 class="hud__title">Your garden</h1>
-    <p class="hud__copy"><span data-post-count>${postCountEl.textContent}</span> cards floating in the void. Press <strong>+</strong> to add something new.</p>
+    <h1 class="hud__title">Naomi Barrera</h1>
+    <p class="hud__copy">My internet brain, rendered in 3D.</p>
+    <ul class="hud__instructions">
+      <li>Scroll to explore</li>
+      <li>Drag to orbit</li>
+      <li>Click anything</li>
+    </ul>
   `;
   document.body.appendChild(hud);
-
-  return hud.querySelector('[data-post-count]');
 }
 
 async function init() {
   const garden = createGarden();
-  const postCountEl = mountHud({ textContent: '…' });
-  const renderer = await garden.init({ postCountEl });
+  mountHud();
+  const renderer = await garden.init();
 
   mountCanvas(renderer);
   garden.start();
@@ -41,7 +43,7 @@ init().catch((error) => {
   console.error(error);
   document.querySelector('#app').innerHTML = `
     <div class="error">
-      <h1>Could not start Spatial Garden</h1>
+      <h1>Could not load</h1>
       <p>Make sure the API is running: <code>npm run dev:server</code></p>
       <pre>${error.message}</pre>
     </div>

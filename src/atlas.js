@@ -45,12 +45,21 @@ function wrapText(ctx, text, maxWidth) {
   return lines;
 }
 
+async function ensureAtlasFonts() {
+  if (!document.fonts?.load) return;
+
+  await Promise.all([
+    document.fonts.load('700 42px "Space Mono"'),
+    document.fonts.load('400 28px "IBM Plex Mono"'),
+  ]);
+}
+
 function drawTextCard(ctx, x, y, size, post) {
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(x, y, size, size);
 
   ctx.fillStyle = '#111111';
-  ctx.font = '600 42px Inter, system-ui, sans-serif';
+  ctx.font = '700 42px "Space Mono", monospace';
   const titleLines = wrapText(ctx, post.title, size - 64).slice(0, 3);
 
   let cursorY = y + 48;
@@ -60,7 +69,7 @@ function drawTextCard(ctx, x, y, size, post) {
   }
 
   ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
-  ctx.font = '400 28px Inter, system-ui, sans-serif';
+  ctx.font = '400 28px "IBM Plex Mono", monospace';
   const excerpt = post.excerpt || (post.type === 'link' ? post.url : '');
   const excerptLines = wrapText(ctx, excerpt, size - 64).slice(0, 5);
 
@@ -78,6 +87,8 @@ function drawTextCard(ctx, x, y, size, post) {
 export const CELL_SIZE = 512;
 
 export async function buildAtlas(posts) {
+  await ensureAtlasFonts();
+
   const count = posts.length;
   const cols = Math.ceil(Math.sqrt(count));
   const rows = Math.ceil(count / cols);

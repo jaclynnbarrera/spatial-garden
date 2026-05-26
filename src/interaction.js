@@ -1,11 +1,6 @@
 import gsap from 'gsap';
 import * as THREE from 'three';
-
-const TYPE_LABELS = {
-  link: 'Link',
-  image: 'Image',
-  text: 'Text',
-};
+import { TYPE_LABELS, formatAddedLabel } from './postMeta.js';
 
 function mountTooltip() {
   const el = document.createElement('div');
@@ -13,6 +8,7 @@ function mountTooltip() {
   el.hidden = true;
   el.innerHTML = `
     <p class="tooltip__type"></p>
+    <p class="tooltip__date" hidden></p>
     <p class="tooltip__title"></p>
     <p class="tooltip__excerpt"></p>
   `;
@@ -21,6 +17,7 @@ function mountTooltip() {
   return {
     el,
     type: el.querySelector('.tooltip__type'),
+    date: el.querySelector('.tooltip__date'),
     title: el.querySelector('.tooltip__title'),
     excerpt: el.querySelector('.tooltip__excerpt'),
   };
@@ -144,6 +141,11 @@ export function createHoverController({ camera, renderer, controls, getMesh, det
 
   function showTooltip(post, clientX, clientY) {
     tooltip.type.textContent = TYPE_LABELS[post.type] || 'Post';
+
+    const addedLabel = formatAddedLabel(post.createdAt);
+    tooltip.date.textContent = addedLabel;
+    tooltip.date.hidden = !addedLabel;
+
     tooltip.title.textContent = post.title;
 
     const excerpt = post.excerpt || (post.type === 'link' ? post.url : '');
