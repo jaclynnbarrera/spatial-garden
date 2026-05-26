@@ -1,17 +1,6 @@
 import './style.css';
-import { buildAtlas } from './atlas.js';
-import { animateScatterIn } from './animations.js';
-import { createControls } from './controls.js';
-import { createParticles } from './particles.js';
-import { createScene } from './scene.js';
-
-async function fetchPosts() {
-  const response = await fetch('/api/posts');
-  if (!response.ok) {
-    throw new Error(`Failed to load posts (${response.status})`);
-  }
-  return response.json();
-}
+import { mountComposePanel } from './admin/ComposePanel.js';
+import { createGarden } from './garden.js';
 
 function mountCanvas(renderer) {
   const app = document.querySelector('#app');
@@ -19,7 +8,7 @@ function mountCanvas(renderer) {
   app.appendChild(renderer.domElement);
 }
 
-function mountHud(postCount) {
+function mountHud(postCountEl) {
   const existing = document.querySelector('.hud');
   if (existing) existing.remove();
 
@@ -27,43 +16,25 @@ function mountHud(postCount) {
   hud.className = 'hud';
   hud.innerHTML = `
     <p class="hud__eyebrow">Spatial Garden</p>
-    <h1 class="hud__title">Phase 2</h1>
-    <p class="hud__copy">${postCount} cards floating in the void. Drag to rotate, scroll to zoom, right-drag to pan.</p>
+    <h1 class="hud__title">Your garden</h1>
+    <p class="hud__copy"><span data-post-count>${postCountEl.textContent}</span> cards floating in the void. Press <strong>+</strong> to add something new.</p>
   `;
   document.body.appendChild(hud);
+
+  return hud.querySelector('[data-post-count]');
 }
 
 async function init() {
-  const posts = await fetchPosts();
-  const imagePaths = [...new Set(posts.map((post) => post.imagePath).filter(Boolean))];
-
-  if (imagePaths.length === 0) {
-    throw new Error('No image paths found on posts');
-  }
-
-  const atlas = await buildAtlas(imagePaths);
-  const { scene, camera, renderer } = createScene();
-  const controls = createControls(camera, renderer);
+  const garden = createGarden();
+  const postCountEl = mountHud({ textContent: '…' });
+  const renderer = await garden.init({ postCountEl });
 
   mountCanvas(renderer);
-  mountHud(posts.length);
+  garden.start();
 
-  const { mesh, geometry, positions, targetPositions } = createParticles(posts, atlas);
-  scene.add(mesh);
-
-  const markPositionsDirty = () => {
-    geometry.attributes.position.needsUpdate = true;
-  };
-
-  animateScatterIn({ positions, targetPositions, onUpdate: markPositionsDirty });
-
-  function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
-  }
-
-  animate();
+  mountComposePanel({
+    onPostCreated: () => garden.addPost(),
+  });
 }
 
 init().catch((error) => {

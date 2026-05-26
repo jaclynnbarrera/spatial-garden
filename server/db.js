@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { v4 as uuid } from 'uuid';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dbPath = join(__dirname, '../data/posts.db');
@@ -144,6 +145,61 @@ function seedPlaceholders() {
 
 seedPlaceholders();
 
+function randomPosition() {
+  return [
+    (Math.random() - 0.5) * 40,
+    (Math.random() - 0.5) * 40,
+    (Math.random() - 0.5) * 40,
+  ];
+}
+
+function mapRow(row) {
+  return {
+    id: row.id,
+    type: row.type,
+    title: row.title,
+    excerpt: row.excerpt,
+    url: row.url,
+    imagePath: row.imagePath,
+    createdAt: row.createdAt,
+    position: [row.position_x, row.position_y, row.position_z],
+  };
+}
+
+export function createPost({ type, title, excerpt, url, imagePath }) {
+  const id = uuid();
+  const position = randomPosition();
+
+  db.prepare(
+    `INSERT INTO posts (id, type, title, excerpt, url, image_path, position_x, position_y, position_z)
+     VALUES (@id, @type, @title, @excerpt, @url, @imagePath, @position_x, @position_y, @position_z)`
+  ).run({
+    id,
+    type,
+    title,
+    excerpt: excerpt ?? null,
+    url: url ?? null,
+    imagePath: imagePath ?? null,
+    position_x: position[0],
+    position_y: position[1],
+    position_z: position[2],
+  });
+
+  return getPostById(id);
+}
+
+export function getPostById(id) {
+  const row = db
+    .prepare(
+      `SELECT id, type, title, excerpt, url, image_path AS imagePath,
+              position_x, position_y, position_z, created_at AS createdAt
+       FROM posts WHERE id = @id`
+    )
+    .get({ id });
+
+  return row ? mapRow(row) : null;
+}
+
 export function getAllPosts() {
   const rows = db
     .prepare(
@@ -154,16 +210,7 @@ export function getAllPosts() {
     )
     .all();
 
-  return rows.map((row) => ({
-    id: row.id,
-    type: row.type,
-    title: row.title,
-    excerpt: row.excerpt,
-    url: row.url,
-    imagePath: row.imagePath,
-    createdAt: row.createdAt,
-    position: [row.position_x, row.position_y, row.position_z],
-  }));
+  return rows.map(mapRow);
 }
 
 export default db;

@@ -10,6 +10,7 @@ export function createParticles(posts, atlas) {
   const positions = new Float32Array(count * 3);
   const targetPositions = new Float32Array(count * 3);
   const textureIndices = new Float32Array(count);
+  const particleIndices = new Float32Array(count);
 
   posts.forEach((post, i) => {
     const [tx, ty, tz] = post.position;
@@ -24,11 +25,13 @@ export function createParticles(posts, atlas) {
     targetPositions[i3 + 2] = tz;
 
     textureIndices[i] = getTextureIndex(post, pathToIndex);
+    particleIndices[i] = i;
   });
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('aTextureIndex', new THREE.BufferAttribute(textureIndices, 1));
+  geometry.setAttribute('aParticleIndex', new THREE.BufferAttribute(particleIndices, 1));
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -44,11 +47,14 @@ export function createParticles(posts, atlas) {
       uScale: { value: 1 },
       uMinSize: { value: 24 },
       uMaxSize: { value: 280 },
+      uHoveredIndex: { value: -1 },
+      uHoverAmount: { value: 0 },
+      uHoverScale: { value: 1.58 },
     },
     vertexShader,
     fragmentShader,
     transparent: true,
-    depthWrite: true,
+    depthWrite: false,
   });
 
   const points = new THREE.Points(geometry, material);

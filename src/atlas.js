@@ -1,4 +1,7 @@
-export const CELL_SIZE = 512;
+export function getTextureKey(post) {
+  if (post.imagePath) return post.imagePath;
+  return `__text__:${post.id}`;
+}
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -23,8 +26,59 @@ function drawImageCover(ctx, img, x, y, width, height) {
   ctx.strokeRect(x + 1, y + 1, width - 2, height - 2);
 }
 
-export async function buildAtlas(imagePaths) {
-  const count = imagePaths.length;
+function wrapText(ctx, text, maxWidth) {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines = [];
+  let current = '';
+
+  for (const word of words) {
+    const test = current ? `${current} ${word}` : word;
+    if (ctx.measureText(test).width > maxWidth && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = test;
+    }
+  }
+
+  if (current) lines.push(current);
+  return lines;
+}
+
+function drawTextCard(ctx, x, y, size, post) {
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(x, y, size, size);
+
+  ctx.fillStyle = '#111111';
+  ctx.font = '600 42px Inter, system-ui, sans-serif';
+  const titleLines = wrapText(ctx, post.title, size - 64).slice(0, 3);
+
+  let cursorY = y + 48;
+  for (const line of titleLines) {
+    ctx.fillText(line, x + 32, cursorY);
+    cursorY += 48;
+  }
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+  ctx.font = '400 28px Inter, system-ui, sans-serif';
+  const excerpt = post.excerpt || (post.type === 'link' ? post.url : '');
+  const excerptLines = wrapText(ctx, excerpt, size - 64).slice(0, 5);
+
+  cursorY += 12;
+  for (const line of excerptLines) {
+    ctx.fillText(line, x + 32, cursorY);
+    cursorY += 36;
+  }
+
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
+}
+
+export const CELL_SIZE = 512;
+
+export async function buildAtlas(posts) {
+  const count = posts.length;
   const cols = Math.ceil(Math.sqrt(count));
   const rows = Math.ceil(count / cols);
 
@@ -38,20 +92,27 @@ export async function buildAtlas(imagePaths) {
 
   const pathToIndex = new Map();
 
-  for (let index = 0; index < imagePaths.length; index += 1) {
-    const path = imagePaths[index];
-    pathToIndex.set(path, index);
+  for (let index = 0; index < posts.length; index += 1) {
+    const post = posts[index];
+    const key = getTextureKey(post);
+    pathToIndex.set(key, index);
 
-    const img = await loadImage(path);
     const col = index % cols;
     const row = Math.floor(index / cols);
-    drawImageCover(ctx, img, col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    const x = col * CELL_SIZE;
+    const y = row * CELL_SIZE;
+
+    if (post.imagePath) {
+      const img = await loadImage(post.imagePath);
+      drawImageCover(ctx, img, x, y, CELL_SIZE, CELL_SIZE);
+    } else {
+      drawTextCard(ctx, x, y, CELL_SIZE, post);
+    }
   }
 
   return { canvas, cols, rows, count, pathToIndex };
 }
 
 export function getTextureIndex(post, pathToIndex) {
-  if (!post.imagePath) return 0;
-  return pathToIndex.get(post.imagePath) ?? 0;
+  return pathToIndex.get(getTextureKey(post)) ?? 0;
 }
