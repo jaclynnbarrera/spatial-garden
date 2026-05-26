@@ -1,15 +1,12 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { dirname, extname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { extname } from 'path';
 import { v4 as uuid } from 'uuid';
 import { createPost } from '../db.js';
 import { downloadImageToUploads } from '../downloadImage.js';
 import { fetchLinkPreview } from '../linkPreview.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const uploadsDir = join(__dirname, '../../public/uploads');
+import { uploadsDir } from '../paths.js';
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsDir),

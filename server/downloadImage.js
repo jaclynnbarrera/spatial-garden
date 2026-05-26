@@ -1,12 +1,7 @@
-import { mkdirSync, writeFileSync } from 'fs';
-import { dirname, extname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { writeFileSync } from 'fs';
+import { extname, join } from 'path';
 import { v4 as uuid } from 'uuid';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const uploadsDir = join(__dirname, '../public/uploads');
-
-mkdirSync(uploadsDir, { recursive: true });
+import { uploadsDir } from './paths.js';
 
 const USER_AGENT =
   'Mozilla/5.0 (compatible; SpatialGarden/1.0; +https://github.com/jaclynnbarrera/spatial-garden)';

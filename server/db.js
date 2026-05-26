@@ -1,13 +1,10 @@
 import Database from 'better-sqlite3';
-import { mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { v4 as uuid } from 'uuid';
+import { dbPath } from './paths.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const dbPath = join(__dirname, '../data/posts.db');
-
-mkdirSync(dirname(dbPath), { recursive: true });
 
 const db = new Database(dbPath);
 

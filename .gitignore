@@ -8,3 +8,4 @@ public/uploads/*
 .env
 .env.*
 !.env.example
+RAILWAY.md
