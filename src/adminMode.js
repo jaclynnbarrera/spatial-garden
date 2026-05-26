@@ -19,6 +19,10 @@ export function initAdminMode() {
 }
 
 export function isAdminMode() {
+  if (import.meta.env.PROD) {
+    return sessionStorage.getItem(SESSION_FLAG) === '1';
+  }
+
   if (import.meta.env.VITE_ADMIN === 'true') return true;
   if (sessionStorage.getItem(SESSION_FLAG) === '1') return true;
   if (import.meta.env.DEV) return true;
