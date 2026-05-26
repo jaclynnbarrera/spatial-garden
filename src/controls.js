@@ -7,8 +7,8 @@ export function createControls(camera, renderer) {
   controls.dampingFactor = 0.05;
   controls.enablePan = true;
   controls.enableZoom = true;
-  controls.minDistance = 5;
-  controls.maxDistance = 120;
+  controls.minDistance = 4;
+  controls.maxDistance = 90;
   controls.target.set(0, 0, 0);
 
   return controls;

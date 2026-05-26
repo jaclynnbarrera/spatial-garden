@@ -43,10 +43,10 @@ export function createParticles(posts, atlas) {
     uniforms: {
       uAtlas: { value: texture },
       uGridSize: { value: new THREE.Vector2(cols, rows) },
-      uBaseSize: { value: 420 },
+      uBaseSize: { value: 520 },
       uScale: { value: 1 },
-      uMinSize: { value: 24 },
-      uMaxSize: { value: 280 },
+      uMinSize: { value: 28 },
+      uMaxSize: { value: 340 },
       uHoveredIndex: { value: -1 },
       uHoverAmount: { value: 0 },
       uHoverScale: { value: 1.58 },
