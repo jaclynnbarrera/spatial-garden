@@ -6,6 +6,17 @@ const TYPE_LABELS = {
   text: 'Text',
 };
 
+const MOTION = {
+  focusOpen: { duration: 0.82, ease: 'sine.inOut' },
+  focusClose: { duration: 0.68, ease: 'sine.inOut' },
+  backdropOpen: { duration: 0.72, ease: 'power1.out' },
+  backdropClose: { duration: 0.62, ease: 'power2.inOut' },
+  panelOpen: { duration: 0.92, ease: 'expo.out' },
+  panelClose: { duration: 0.6, ease: 'power2.inOut' },
+  contentOpen: { duration: 0.56, stagger: 0.07, ease: 'power2.out' },
+  contentClose: { duration: 0.4, stagger: 0.045, ease: 'power2.inOut' },
+};
+
 export function createDetailView({ getControls, getUniforms }) {
   const root = document.createElement('div');
   root.className = 'detail-root';
@@ -72,9 +83,30 @@ export function createDetailView({ getControls, getUniforms }) {
     }
   }
 
+  function getAnimatedContent() {
+    const items = [];
+
+    if (!media.hidden) {
+      const img = media.querySelector('img');
+      if (img) items.push(img);
+    }
+
+    items.push(typeEl, titleEl);
+    if (!excerptEl.hidden) items.push(excerptEl);
+    if (!linkEl.hidden) items.push(linkEl);
+
+    return items;
+  }
+
+  function setContentInitial() {
+    gsap.set(getAnimatedContent(), { opacity: 0, y: 16 });
+  }
+
   function animateFocus(index, opening) {
     const uniforms = getUniforms();
     if (!uniforms) return null;
+
+    const motion = opening ? MOTION.focusOpen : MOTION.focusClose;
 
     if (opening) {
       uniforms.uFocusedIndex.value = index;
@@ -83,15 +115,15 @@ export function createDetailView({ getControls, getUniforms }) {
 
       return gsap.to(uniforms.uFocusAmount, {
         value: 1,
-        duration: 0.48,
-        ease: 'power3.inOut',
+        duration: motion.duration,
+        ease: motion.ease,
       });
     }
 
     return gsap.to(uniforms.uFocusAmount, {
       value: 0,
-      duration: 0.34,
-      ease: 'power3.inOut',
+      duration: motion.duration,
+      ease: motion.ease,
       onComplete: () => {
         uniforms.uFocusedIndex.value = -1;
       },
@@ -103,23 +135,69 @@ export function createDetailView({ getControls, getUniforms }) {
     isOpen = true;
     focusedIndex = index;
     populate(post);
+    setContentInitial();
 
     root.hidden = false;
     getControls().enabled = false;
 
-    gsap.set(backdrop, { opacity: 0 });
-    gsap.set(panel, { opacity: 0, scale: 0.92, y: 20 });
+    gsap.set(backdrop, { opacity: 0, backdropFilter: 'blur(0px)' });
+    gsap.set(panel, { opacity: 0, scale: 0.94, y: 44 });
+    gsap.set(closeBtn, { opacity: 0, scale: 0.92 });
 
     if (timeline) timeline.kill();
     timeline = gsap.timeline();
 
     timeline.add(animateFocus(index, true), 0);
-    timeline.to(backdrop, { opacity: 1, duration: 0.35, ease: 'power2.out' }, 0.04);
-    timeline.to(panel, { opacity: 1, scale: 1, y: 0, duration: 0.48, ease: 'power3.out' }, 0.1);
+
+    timeline.to(
+      backdrop,
+      {
+        opacity: 1,
+        backdropFilter: 'blur(12px)',
+        duration: MOTION.backdropOpen.duration,
+        ease: MOTION.backdropOpen.ease,
+      },
+      0.06
+    );
+
+    timeline.to(
+      panel,
+      {
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        duration: MOTION.panelOpen.duration,
+        ease: MOTION.panelOpen.ease,
+      },
+      0.14
+    );
+
+    timeline.to(
+      closeBtn,
+      {
+        opacity: 1,
+        scale: 1,
+        duration: 0.48,
+        ease: 'power2.out',
+      },
+      0.34
+    );
+
+    timeline.to(
+      getAnimatedContent(),
+      {
+        opacity: 1,
+        y: 0,
+        duration: MOTION.contentOpen.duration,
+        stagger: MOTION.contentOpen.stagger,
+        ease: MOTION.contentOpen.ease,
+      },
+      0.3
+    );
   }
 
   function resetPanelStyles() {
-    gsap.set([backdrop, panel], { clearProps: 'all' });
+    gsap.set([backdrop, panel, closeBtn, ...getAnimatedContent()], { clearProps: 'all' });
   }
 
   function forceClose() {
@@ -144,6 +222,9 @@ export function createDetailView({ getControls, getUniforms }) {
     }
     isOpen = false;
 
+    const content = getAnimatedContent();
+    const closingIndex = focusedIndex;
+
     if (timeline) timeline.kill();
     timeline = gsap.timeline({
       onComplete: () => {
@@ -154,9 +235,53 @@ export function createDetailView({ getControls, getUniforms }) {
       },
     });
 
-    timeline.to(panel, { opacity: 0, scale: 0.96, y: 12, duration: 0.28, ease: 'power2.in' }, 0);
-    timeline.to(backdrop, { opacity: 0, duration: 0.28, ease: 'power2.in' }, 0.04);
-    timeline.add(animateFocus(focusedIndex, false), 0);
+    timeline.to(
+      content,
+      {
+        opacity: 0,
+        y: 12,
+        duration: MOTION.contentClose.duration,
+        stagger: MOTION.contentClose.stagger,
+        ease: MOTION.contentClose.ease,
+      },
+      0
+    );
+
+    timeline.to(
+      closeBtn,
+      {
+        opacity: 0,
+        scale: 0.94,
+        duration: 0.32,
+        ease: 'power2.inOut',
+      },
+      0.02
+    );
+
+    timeline.to(
+      panel,
+      {
+        opacity: 0,
+        scale: 0.965,
+        y: 30,
+        duration: MOTION.panelClose.duration,
+        ease: MOTION.panelClose.ease,
+      },
+      0.1
+    );
+
+    timeline.to(
+      backdrop,
+      {
+        opacity: 0,
+        backdropFilter: 'blur(0px)',
+        duration: MOTION.backdropClose.duration,
+        ease: MOTION.backdropClose.ease,
+      },
+      0.14
+    );
+
+    timeline.add(animateFocus(closingIndex, false), 0.08);
   }
 
   function onKeyDown(event) {
