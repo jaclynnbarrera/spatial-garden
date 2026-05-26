@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid';
 import { createPost } from '../db.js';
 import { downloadImageToUploads } from '../downloadImage.js';
 import { fetchLinkPreview } from '../linkPreview.js';
+import { requireAdmin } from '../middleware/requireAdmin.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const uploadsDir = join(__dirname, '../../public/uploads');
@@ -32,7 +33,7 @@ const upload = multer({
 
 const router = Router();
 
-router.post('/preview-link', async (req, res) => {
+router.post('/preview-link', requireAdmin, async (req, res) => {
   try {
     const { url } = req.body;
 
@@ -48,7 +49,7 @@ router.post('/preview-link', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', requireAdmin, async (req, res) => {
   try {
     const { type, title, excerpt, url, imagePath } = req.body;
 
@@ -91,7 +92,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.post('/image', upload.single('image'), (req, res) => {
+router.post('/image', requireAdmin, upload.single('image'), (req, res) => {
   try {
     const title = req.body.title?.trim();
     const excerpt = req.body.excerpt?.trim() || null;

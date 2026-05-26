@@ -1,3 +1,13 @@
+import { getAdminKey } from './adminMode.js';
+
+function writeHeaders(contentType) {
+  const headers = {};
+  if (contentType) headers['Content-Type'] = contentType;
+  const adminKey = getAdminKey();
+  if (adminKey) headers['x-admin-key'] = adminKey;
+  return headers;
+}
+
 export async function fetchPosts() {
   const response = await fetch('/api/posts');
   if (!response.ok) {
@@ -9,7 +19,7 @@ export async function fetchPosts() {
 export async function previewLink(url) {
   const response = await fetch('/api/posts/preview-link', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: writeHeaders('application/json'),
     body: JSON.stringify({ url }),
   });
 
@@ -23,7 +33,7 @@ export async function previewLink(url) {
 export async function createPost(payload) {
   const response = await fetch('/api/posts', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: writeHeaders('application/json'),
     body: JSON.stringify(payload),
   });
 
@@ -42,6 +52,7 @@ export async function createImagePost({ title, excerpt, file }) {
 
   const response = await fetch('/api/posts/image', {
     method: 'POST',
+    headers: writeHeaders(),
     body: formData,
   });
 

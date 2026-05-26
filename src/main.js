@@ -1,4 +1,5 @@
 import './style.css';
+import { initAdminMode, isAdminMode } from './adminMode.js';
 import { mountComposePanel } from './admin/ComposePanel.js';
 import { createGarden } from './garden.js';
 
@@ -27,6 +28,8 @@ function mountHud() {
 }
 
 async function init() {
+  initAdminMode();
+
   const garden = createGarden();
   mountHud();
   const renderer = await garden.init();
@@ -34,9 +37,11 @@ async function init() {
   mountCanvas(renderer);
   garden.start();
 
-  mountComposePanel({
-    onPostCreated: () => garden.addPost(),
-  });
+  if (isAdminMode()) {
+    mountComposePanel({
+      onPostCreated: () => garden.addPost(),
+    });
+  }
 }
 
 init().catch((error) => {
