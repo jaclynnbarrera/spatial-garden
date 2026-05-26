@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 
+const VOID_COLOR = '#f6f6f4';
+
 export function createScene() {
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('#0a0a0f');
-  scene.fog = new THREE.FogExp2('#0a0a0f', 0.012);
+  scene.background = new THREE.Color(VOID_COLOR);
+  scene.fog = new THREE.FogExp2(VOID_COLOR, 0.006);
 
   const camera = new THREE.PerspectiveCamera(
     60,
@@ -20,10 +22,10 @@ export function createScene() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
 
-  const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+  const ambient = new THREE.AmbientLight(0xffffff, 0.85);
   scene.add(ambient);
 
-  const keyLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 0.35);
   keyLight.position.set(10, 20, 10);
   scene.add(keyLight);
 

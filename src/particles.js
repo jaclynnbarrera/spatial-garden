@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 
 const TYPE_COLORS = {
-  link: new THREE.Color('#7eb6ff'),
-  image: new THREE.Color('#ffb86b'),
-  text: new THREE.Color('#b4f0c8'),
+  link: new THREE.Color('#5b9bd5'),
+  image: new THREE.Color('#e07b39'),
+  text: new THREE.Color('#4caf82'),
 };
 
 export function createParticles(posts) {
@@ -35,11 +35,11 @@ export function createParticles(posts) {
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
   const material = new THREE.PointsMaterial({
-    size: 1.2,
+    size: 1.4,
     sizeAttenuation: true,
     vertexColors: true,
     transparent: true,
-    opacity: 0.95,
+    opacity: 0.88,
     depthWrite: false,
   });
 
