@@ -1,4 +1,5 @@
 import './style.css';
+import { buildAtlas } from './atlas.js';
 import { animateScatterIn } from './animations.js';
 import { createControls } from './controls.js';
 import { createParticles } from './particles.js';
@@ -19,30 +20,35 @@ function mountCanvas(renderer) {
 }
 
 function mountHud(postCount) {
+  const existing = document.querySelector('.hud');
+  if (existing) existing.remove();
+
   const hud = document.createElement('div');
   hud.className = 'hud';
   hud.innerHTML = `
     <p class="hud__eyebrow">Spatial Garden</p>
-    <h1 class="hud__title">Phase 1</h1>
-    <p class="hud__copy">${postCount} placeholder posts in 3D space. Drag to rotate, scroll to zoom, right-drag to pan.</p>
-    <ul class="hud__legend">
-      <li><span class="dot dot--link"></span> Link</li>
-      <li><span class="dot dot--image"></span> Image</li>
-      <li><span class="dot dot--text"></span> Text</li>
-    </ul>
+    <h1 class="hud__title">Phase 2</h1>
+    <p class="hud__copy">${postCount} cards floating in the void. Drag to rotate, scroll to zoom, right-drag to pan.</p>
   `;
   document.body.appendChild(hud);
 }
 
 async function init() {
   const posts = await fetchPosts();
+  const imagePaths = [...new Set(posts.map((post) => post.imagePath).filter(Boolean))];
+
+  if (imagePaths.length === 0) {
+    throw new Error('No image paths found on posts');
+  }
+
+  const atlas = await buildAtlas(imagePaths);
   const { scene, camera, renderer } = createScene();
   const controls = createControls(camera, renderer);
 
   mountCanvas(renderer);
   mountHud(posts.length);
 
-  const { mesh, geometry, positions, targetPositions } = createParticles(posts);
+  const { mesh, geometry, positions, targetPositions } = createParticles(posts, atlas);
   scene.add(mesh);
 
   const markPositionsDirty = () => {

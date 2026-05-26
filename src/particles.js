@@ -1,16 +1,15 @@
 import * as THREE from 'three';
+import { getTextureIndex } from './atlas.js';
+import fragmentShader from './shaders/particle.frag?raw';
+import vertexShader from './shaders/particle.vert?raw';
 
-const TYPE_COLORS = {
-  link: new THREE.Color('#5b9bd5'),
-  image: new THREE.Color('#e07b39'),
-  text: new THREE.Color('#4caf82'),
-};
-
-export function createParticles(posts) {
+export function createParticles(posts, atlas) {
+  const { canvas, cols, rows, pathToIndex } = atlas;
   const count = posts.length;
+
   const positions = new Float32Array(count * 3);
   const targetPositions = new Float32Array(count * 3);
-  const colors = new Float32Array(count * 3);
+  const textureIndices = new Float32Array(count);
 
   posts.forEach((post, i) => {
     const [tx, ty, tz] = post.position;
@@ -24,23 +23,32 @@ export function createParticles(posts) {
     targetPositions[i3 + 1] = ty;
     targetPositions[i3 + 2] = tz;
 
-    const color = TYPE_COLORS[post.type] ?? TYPE_COLORS.text;
-    colors[i3] = color.r;
-    colors[i3 + 1] = color.g;
-    colors[i3 + 2] = color.b;
+    textureIndices[i] = getTextureIndex(post, pathToIndex);
   });
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute('aTextureIndex', new THREE.BufferAttribute(textureIndices, 1));
 
-  const material = new THREE.PointsMaterial({
-    size: 1.4,
-    sizeAttenuation: true,
-    vertexColors: true,
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.flipY = false;
+
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uAtlas: { value: texture },
+      uGridSize: { value: new THREE.Vector2(cols, rows) },
+      uBaseSize: { value: 420 },
+      uScale: { value: 1 },
+      uMinSize: { value: 24 },
+      uMaxSize: { value: 280 },
+    },
+    vertexShader,
+    fragmentShader,
     transparent: true,
-    opacity: 0.88,
-    depthWrite: false,
+    depthWrite: true,
   });
 
   const points = new THREE.Points(geometry, material);
@@ -51,5 +59,6 @@ export function createParticles(posts) {
     geometry,
     positions,
     targetPositions,
+    texture,
   };
 }

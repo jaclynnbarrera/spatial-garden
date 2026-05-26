@@ -28,57 +28,110 @@ db.exec(`
 const PLACEHOLDER_POSTS = [
   {
     id: 'placeholder-1',
-    type: 'link',
-    title: 'The Art of Slow Reading',
-    excerpt: 'Why taking your time with an article changes how you remember it.',
-    url: 'https://example.com/slow-reading',
+    type: 'image',
+    title: 'Aquatic',
+    excerpt: 'Saved to the garden.',
+    imagePath: '/media/aquatic.png',
     position: [-8, 4, -6],
   },
   {
     id: 'placeholder-2',
     type: 'image',
-    title: 'Morning light study',
-    excerpt: 'A screenshot from a walk — colors worth keeping.',
+    title: 'Softi',
+    excerpt: 'Saved to the garden.',
+    imagePath: '/media/softi.png',
     position: [6, -3, 5],
   },
   {
     id: 'placeholder-3',
-    type: 'text',
-    title: 'Garden note',
-    excerpt: 'Every saved thing becomes a star in the map of what you care about.',
+    type: 'image',
+    title: 'Tang',
+    excerpt: 'Saved to the garden.',
+    imagePath: '/media/tang.png',
     position: [2, 7, -10],
   },
   {
     id: 'placeholder-4',
-    type: 'link',
-    title: 'Building in public',
-    excerpt: 'A short essay on sharing work before it feels finished.',
-    url: 'https://example.com/build-in-public',
+    type: 'image',
+    title: 'Bondy',
+    excerpt: 'Saved to the garden.',
+    imagePath: '/media/bondy.png',
     position: [-5, -6, 8],
   },
   {
     id: 'placeholder-5',
     type: 'image',
-    title: 'Color palette grab',
-    excerpt: 'Muted blues and warm amber — saving this combo for later.',
+    title: 'Wata',
+    excerpt: 'Saved to the garden.',
+    imagePath: '/media/wata.png',
     position: [10, 2, -4],
+  },
+  {
+    id: 'placeholder-6',
+    type: 'image',
+    title: 'Chair',
+    excerpt: 'Saved to the garden.',
+    imagePath: '/media/chair.png',
+    position: [-12, -2, 2],
+  },
+  {
+    id: 'placeholder-7',
+    type: 'image',
+    title: 'Trick',
+    excerpt: 'Saved to the garden.',
+    imagePath: '/media/trick.png',
+    position: [4, 5, 6],
+  },
+  {
+    id: 'placeholder-8',
+    type: 'image',
+    title: 'Plebian',
+    excerpt: 'Saved to the garden.',
+    imagePath: '/media/plebian.png',
+    position: [-3, 8, 4],
+  },
+  {
+    id: 'placeholder-9',
+    type: 'image',
+    title: 'Vav',
+    excerpt: 'Saved to the garden.',
+    imagePath: '/media/vav.png',
+    position: [8, -5, -8],
+  },
+  {
+    id: 'placeholder-10',
+    type: 'image',
+    title: 'CBD',
+    excerpt: 'Saved to the garden.',
+    imagePath: '/media/cbd.png',
+    position: [-7, 1, 12],
   },
 ];
 
 function seedPlaceholders() {
-  const insert = db.prepare(`
-    INSERT OR IGNORE INTO posts (id, type, title, excerpt, url, position_x, position_y, position_z)
-    VALUES (@id, @type, @title, @excerpt, @url, @position_x, @position_y, @position_z)
+  const upsert = db.prepare(`
+    INSERT INTO posts (id, type, title, excerpt, url, image_path, position_x, position_y, position_z)
+    VALUES (@id, @type, @title, @excerpt, @url, @imagePath, @position_x, @position_y, @position_z)
+    ON CONFLICT(id) DO UPDATE SET
+      type = excluded.type,
+      title = excluded.title,
+      excerpt = excluded.excerpt,
+      url = excluded.url,
+      image_path = excluded.image_path,
+      position_x = excluded.position_x,
+      position_y = excluded.position_y,
+      position_z = excluded.position_z
   `);
 
-  const insertMany = db.transaction((posts) => {
+  const upsertMany = db.transaction((posts) => {
     for (const post of posts) {
-      insert.run({
+      upsert.run({
         id: post.id,
         type: post.type,
         title: post.title,
         excerpt: post.excerpt ?? null,
         url: post.url ?? null,
+        imagePath: post.imagePath ?? null,
         position_x: post.position[0],
         position_y: post.position[1],
         position_z: post.position[2],
@@ -86,7 +139,7 @@ function seedPlaceholders() {
     }
   });
 
-  insertMany(PLACEHOLDER_POSTS);
+  upsertMany(PLACEHOLDER_POSTS);
 }
 
 seedPlaceholders();
