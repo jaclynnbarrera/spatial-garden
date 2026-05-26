@@ -2,6 +2,7 @@ import { buildAtlas } from './atlas.js';
 import { animateParticleIn, animateScatterIn } from './animations.js';
 import { fetchPosts } from './api.js';
 import { createControls } from './controls.js';
+import { createDetailView } from './detail.js';
 import { createHoverController } from './interaction.js';
 import { createParticles } from './particles.js';
 import { createScene } from './scene.js';
@@ -22,6 +23,7 @@ export function createGarden() {
     posts: [],
     postCountEl: null,
     hover: null,
+    detail: null,
   };
 
   function updatePostCount(count) {
@@ -43,6 +45,7 @@ export function createGarden() {
     state.scene.add(state.mesh);
     state.posts = posts;
     state.hover?.reset();
+    state.detail?.forceClose();
 
     const markDirty = () => {
       particleData.geometry.attributes.position.needsUpdate = true;
@@ -88,11 +91,16 @@ export function createGarden() {
       state.camera = camera;
       state.renderer = renderer;
       state.controls = createControls(camera, renderer);
+      state.detail = createDetailView({
+        getControls: () => state.controls,
+        getUniforms: () => state.mesh?.material?.uniforms ?? null,
+      });
       state.hover = createHoverController({
         camera,
         renderer,
         controls: state.controls,
         getMesh: () => state.mesh,
+        detail: state.detail,
       });
 
       updatePostCount(posts.length);

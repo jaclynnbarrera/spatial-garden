@@ -35,11 +35,17 @@ function estimatePointRadius(camera, material, positionAttribute, index, pixelRa
   worldPos.applyMatrix4(camera.matrixWorldInverse);
 
   const dist = Math.max(worldPos.length(), 0.001);
-  const { uBaseSize, uScale, uMinSize, uMaxSize, uHoverScale } = material.uniforms;
+  const { uBaseSize, uScale, uMinSize, uMaxSize, uHoverScale, uFocusScale, uFocusAmount, uFocusedIndex } =
+    material.uniforms;
 
   let pointSize = uBaseSize.value * (uScale.value / dist);
   pointSize = Math.max(uMinSize.value, Math.min(uMaxSize.value, pointSize));
-  pointSize *= 1 + (uHoverScale.value - 1) * hoverAmount;
+
+  if (index === uFocusedIndex.value && uFocusAmount.value > 0) {
+    pointSize *= 1 + (uFocusScale.value - 1) * uFocusAmount.value;
+  } else {
+    pointSize *= 1 + (uHoverScale.value - 1) * hoverAmount;
+  }
 
   return (pointSize * 0.55) / pixelRatio;
 }
@@ -85,57 +91,55 @@ function findHoveredIndex({ camera, mesh, renderer, mouseX, mouseY, hoveredIndex
   return bestIndex;
 }
 
-export function createHoverController({ camera, renderer, controls, getMesh }) {
+export function createHoverController({ camera, renderer, controls, getMesh, detail }) {
   const tooltip = mountTooltip();
   let hoveredIndex = -1;
-  let isDragging = false;
   let hoverTween = null;
+  let pointerOrigin = null;
+  const DRAG_THRESHOLD = 8;
+
+  function pointerMovedEnough(event) {
+    if (!pointerOrigin) return false;
+    return (
+      Math.hypot(event.clientX - pointerOrigin.x, event.clientY - pointerOrigin.y) > DRAG_THRESHOLD
+    );
+  }
 
   function animateHover(index) {
     const uniforms = getHoverUniforms(getMesh());
-    if (!uniforms) return;
+    if (!uniforms || detail.isOpen()) return;
 
     if (hoverTween) hoverTween.kill();
 
     if (index === -1) {
-    hoverTween = gsap.to(uniforms.uHoverAmount, {
-      value: 0,
-      duration: 0.26,
-      ease: 'power3.out',
-      onComplete: () => {
-        uniforms.uHoveredIndex.value = -1;
-      },
-    });
-    return;
-  }
-
-  uniforms.uHoveredIndex.value = index;
-  hoverTween = gsap.to(uniforms.uHoverAmount, {
-    value: 1,
-    duration: 0.38,
-    ease: 'power3.out',
-  });
-  }
-
-  controls.addEventListener('start', () => {
-    isDragging = true;
-    clearHover();
-  });
-
-  controls.addEventListener('end', () => {
-    isDragging = false;
-  });
-
-  function clearHover() {
-    if (hoveredIndex === -1) {
-      animateHover(-1);
+      hoverTween = gsap.to(uniforms.uHoverAmount, {
+        value: 0,
+        duration: 0.26,
+        ease: 'power3.out',
+        onComplete: () => {
+          uniforms.uHoveredIndex.value = -1;
+        },
+      });
       return;
     }
 
+    uniforms.uHoveredIndex.value = index;
+    hoverTween = gsap.to(uniforms.uHoverAmount, {
+      value: 1,
+      duration: 0.38,
+      ease: 'power3.out',
+    });
+  }
+
+  controls.addEventListener('start', () => {
+    clearHover();
+  });
+
+  function clearHover() {
     hoveredIndex = -1;
     tooltip.el.hidden = true;
     renderer.domElement.style.cursor = '';
-    animateHover(-1);
+    if (!detail.isOpen()) animateHover(-1);
   }
 
   function showTooltip(post, clientX, clientY) {
@@ -152,22 +156,44 @@ export function createHoverController({ camera, renderer, controls, getMesh }) {
     renderer.domElement.style.cursor = 'pointer';
   }
 
-  function onPointerMove(event) {
-    if (isDragging || event.target !== renderer.domElement) {
-      return;
-    }
-
+  function pickIndex(event) {
     const rect = renderer.domElement.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
-    const index = findHoveredIndex({
+    return findHoveredIndex({
       camera,
       mesh: getMesh(),
       renderer,
-      mouseX,
-      mouseY,
+      mouseX: event.clientX - rect.left,
+      mouseY: event.clientY - rect.top,
       hoveredIndex,
     });
+  }
+
+  function onPointerDown(event) {
+    if (event.button !== 0) return;
+
+    const rect = renderer.domElement.getBoundingClientRect();
+    const insideCanvas =
+      event.clientX >= rect.left &&
+      event.clientX <= rect.right &&
+      event.clientY >= rect.top &&
+      event.clientY <= rect.bottom;
+
+    if (!insideCanvas) return;
+    pointerOrigin = { x: event.clientX, y: event.clientY };
+  }
+
+  function onPointerMove(event) {
+    if (detail.isOpen() || event.target !== renderer.domElement) {
+      return;
+    }
+
+    if (pointerOrigin && pointerMovedEnough(event)) {
+      pointerOrigin = null;
+      clearHover();
+      return;
+    }
+
+    const index = pickIndex(event);
 
     if (index === -1) {
       if (hoveredIndex !== -1) clearHover();
@@ -187,11 +213,42 @@ export function createHoverController({ camera, renderer, controls, getMesh }) {
     showTooltip(posts[index], event.clientX, event.clientY);
   }
 
-  function onPointerLeave() {
+  function onPointerUp(event) {
+    if (event.button !== 0 || detail.isOpen()) {
+      pointerOrigin = null;
+      return;
+    }
+
+    if (!pointerOrigin) return;
+
+    const dragged = pointerMovedEnough(event);
+    pointerOrigin = null;
+    if (dragged) return;
+
+    const index = pickIndex(event);
+    if (index === -1) return;
+
+    const posts = getMesh()?.userData.posts || [];
+    const post = posts[index];
+    if (!post) return;
+
     clearHover();
+    detail.open(post, index);
   }
 
+  function onPointerCancel() {
+    pointerOrigin = null;
+  }
+
+  function onPointerLeave() {
+    pointerOrigin = null;
+    if (!detail.isOpen()) clearHover();
+  }
+
+  renderer.domElement.addEventListener('pointerdown', onPointerDown);
   renderer.domElement.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('pointercancel', onPointerCancel);
   renderer.domElement.addEventListener('pointerleave', onPointerLeave);
 
   return {
@@ -205,11 +262,16 @@ export function createHoverController({ camera, renderer, controls, getMesh }) {
       if (uniforms) {
         uniforms.uHoveredIndex.value = -1;
         uniforms.uHoverAmount.value = 0;
+        uniforms.uFocusedIndex.value = -1;
+        uniforms.uFocusAmount.value = 0;
       }
     },
     dispose() {
       if (hoverTween) hoverTween.kill();
+      renderer.domElement.removeEventListener('pointerdown', onPointerDown);
       renderer.domElement.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerCancel);
       renderer.domElement.removeEventListener('pointerleave', onPointerLeave);
       tooltip.el.remove();
       hoveredIndex = -1;
