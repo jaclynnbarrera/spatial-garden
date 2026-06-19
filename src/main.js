@@ -17,7 +17,8 @@ function mountHud() {
   hud.className = 'hud';
   hud.innerHTML = `
     <h1 class="hud__title">Naomi Barrera</h1>
-    <p class="hud__copy">My internet brain, rendered in 3D.</p>
+    <p class="hud__copy">Things I save when they resonate.</p>
+    <p class="hud__copy">Links, images, notes in 3D space.</p>
     <ul class="hud__instructions">
       <li>Scroll to explore</li>
       <li>Drag to orbit</li>
