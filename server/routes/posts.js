@@ -2,7 +2,8 @@ import { Router } from 'express';
 import multer from 'multer';
 import { extname } from 'path';
 import { v4 as uuid } from 'uuid';
-import { createPost } from '../db.js';
+import { createPost, deletePost, getPostById, updatePost } from '../db.js';
+import { deleteUploadFile } from '../uploadFiles.js';
 import { downloadImageToUploads } from '../downloadImage.js';
 import { fetchLinkPreview } from '../linkPreview.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
@@ -86,6 +87,114 @@ router.post('/', requireAdmin, async (req, res) => {
     res.status(201).json(post);
   } catch (error) {
     res.status(400).json({ error: error.message || 'Could not create post' });
+  }
+});
+
+router.patch('/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const existing = getPostById(id);
+
+    if (!existing) {
+      res.status(404).json({ error: 'Post not found' });
+      return;
+    }
+
+    const title = req.body.title?.trim();
+    const excerpt = req.body.excerpt?.trim() || null;
+
+    if (!title) {
+      res.status(400).json({ error: 'Title is required' });
+      return;
+    }
+
+    let url = existing.url;
+    let imagePath = existing.imagePath;
+
+    if (existing.type === 'link') {
+      const nextUrl = req.body.url?.trim();
+      if (!nextUrl) {
+        res.status(400).json({ error: 'URL is required for link posts' });
+        return;
+      }
+      url = nextUrl;
+
+      if (req.body.imagePath !== undefined) {
+        let savedImagePath = req.body.imagePath || null;
+
+        if (savedImagePath?.startsWith('http')) {
+          try {
+            savedImagePath = await downloadImageToUploads(savedImagePath, url);
+          } catch {
+            savedImagePath = existing.imagePath;
+          }
+        }
+
+        if (savedImagePath !== existing.imagePath) {
+          deleteUploadFile(existing.imagePath);
+        }
+
+        imagePath = savedImagePath;
+      }
+    }
+
+    const post = updatePost(id, { title, excerpt, url, imagePath });
+    res.json(post);
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Could not update post' });
+  }
+});
+
+router.patch('/:id/image', requireAdmin, upload.single('image'), (req, res) => {
+  try {
+    const { id } = req.params;
+    const existing = getPostById(id);
+
+    if (!existing) {
+      res.status(404).json({ error: 'Post not found' });
+      return;
+    }
+
+    if (existing.type !== 'image') {
+      res.status(400).json({ error: 'Only image posts can replace their image' });
+      return;
+    }
+
+    const title = req.body.title?.trim();
+    const excerpt = req.body.excerpt?.trim() || null;
+
+    if (!title) {
+      res.status(400).json({ error: 'Title is required' });
+      return;
+    }
+
+    let imagePath = existing.imagePath;
+
+    if (req.file) {
+      deleteUploadFile(existing.imagePath);
+      imagePath = `/uploads/${req.file.filename}`;
+    }
+
+    const post = updatePost(id, { title, excerpt, url: null, imagePath });
+    res.json(post);
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Could not update image post' });
+  }
+});
+
+router.delete('/:id', requireAdmin, (req, res) => {
+  try {
+    const post = deletePost(req.params.id);
+
+    if (!post) {
+      res.status(404).json({ error: 'Post not found' });
+      return;
+    }
+
+    deleteUploadFile(post.imagePath);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Could not delete post' });
   }
 });
 

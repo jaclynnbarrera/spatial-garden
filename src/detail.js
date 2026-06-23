@@ -12,7 +12,7 @@ const MOTION = {
   contentClose: { duration: 0.4, stagger: 0.045, ease: 'power2.inOut' },
 };
 
-export function createDetailView({ getControls, getUniforms }) {
+export function createDetailView({ getControls, getUniforms, isAdmin = false, onEdit, onDelete }) {
   const root = document.createElement('div');
   root.className = 'detail-root';
   root.hidden = true;
@@ -29,6 +29,10 @@ export function createDetailView({ getControls, getUniforms }) {
         <h2 class="detail__title" data-title></h2>
         <p class="detail__excerpt" data-excerpt></p>
         <a class="detail__link" data-link target="_blank" rel="noopener noreferrer" hidden>Open link →</a>
+        <div class="detail__actions" data-actions hidden>
+          <button type="button" class="detail__edit" data-edit>Edit</button>
+          <button type="button" class="detail__delete" data-delete>Delete</button>
+        </div>
       </div>
     </div>
   `;
@@ -42,11 +46,15 @@ export function createDetailView({ getControls, getUniforms }) {
   const titleEl = root.querySelector('[data-title]');
   const excerptEl = root.querySelector('[data-excerpt]');
   const linkEl = root.querySelector('[data-link]');
+  const actionsEl = root.querySelector('[data-actions]');
+  const editBtn = root.querySelector('[data-edit]');
+  const deleteBtn = root.querySelector('[data-delete]');
   const closeBtn = root.querySelector('.detail__close');
 
   let isOpen = false;
   let timeline = null;
   let focusedIndex = -1;
+  let currentPost = null;
 
   function renderMedia(post) {
     media.innerHTML = '';
@@ -85,6 +93,8 @@ export function createDetailView({ getControls, getUniforms }) {
       linkEl.hidden = true;
       linkEl.removeAttribute('href');
     }
+
+    actionsEl.hidden = !isAdmin;
   }
 
   function getAnimatedContent() {
@@ -100,6 +110,7 @@ export function createDetailView({ getControls, getUniforms }) {
     items.push(titleEl);
     if (!excerptEl.hidden) items.push(excerptEl);
     if (!linkEl.hidden) items.push(linkEl);
+    if (!actionsEl.hidden) items.push(actionsEl);
 
     return items;
   }
@@ -140,6 +151,7 @@ export function createDetailView({ getControls, getUniforms }) {
     if (isOpen) return;
     isOpen = true;
     focusedIndex = index;
+    currentPost = post;
     populate(post);
     setContentInitial();
 
@@ -210,6 +222,7 @@ export function createDetailView({ getControls, getUniforms }) {
     if (timeline) timeline.kill();
     isOpen = false;
     focusedIndex = -1;
+    currentPost = null;
     root.hidden = true;
     resetPanelStyles();
     getControls().enabled = true;
@@ -238,6 +251,7 @@ export function createDetailView({ getControls, getUniforms }) {
         resetPanelStyles();
         getControls().enabled = true;
         focusedIndex = -1;
+        currentPost = null;
       },
     });
 
@@ -299,6 +313,35 @@ export function createDetailView({ getControls, getUniforms }) {
     event.stopPropagation();
     close();
   });
+
+  if (isAdmin) {
+    editBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (!currentPost || !onEdit) return;
+      const post = currentPost;
+      close();
+      onEdit(post);
+    });
+
+    deleteBtn.addEventListener('click', async (event) => {
+      event.stopPropagation();
+      if (!currentPost || !onDelete) return;
+      if (!window.confirm('Delete this post? This cannot be undone.')) return;
+
+      const post = currentPost;
+      deleteBtn.disabled = true;
+
+      try {
+        await onDelete(post);
+        close();
+      } catch (error) {
+        window.alert(error.message || 'Could not delete post');
+      } finally {
+        deleteBtn.disabled = false;
+      }
+    });
+  }
+
   document.addEventListener('keydown', onKeyDown);
 
   return {

@@ -71,11 +71,22 @@ export function createGarden() {
         index: lastIndex,
         onUpdate: markDirty,
       });
+      return;
+    }
+
+    if (mode === 'replace') {
+      for (let i = 0; i < posts.length; i += 1) {
+        const i3 = i * 3;
+        particleData.positions[i3] = particleData.targetPositions[i3];
+        particleData.positions[i3 + 1] = particleData.targetPositions[i3 + 1];
+        particleData.positions[i3 + 2] = particleData.targetPositions[i3 + 2];
+      }
+      markDirty();
     }
   }
 
   return {
-    async init() {
+    async init({ isAdmin = false, onEdit, onDelete } = {}) {
       const posts = await fetchPosts();
 
       const { scene, camera, renderer } = createScene();
@@ -86,6 +97,9 @@ export function createGarden() {
       state.detail = createDetailView({
         getControls: () => state.controls,
         getUniforms: () => state.mesh?.material?.uniforms ?? null,
+        isAdmin,
+        onEdit,
+        onDelete,
       });
       state.hover = createHoverController({
         camera,
@@ -103,6 +117,11 @@ export function createGarden() {
     async addPost() {
       const posts = await fetchPosts();
       await renderPosts(posts, { mode: 'add-latest' });
+    },
+
+    async refreshPosts() {
+      const posts = await fetchPosts();
+      await renderPosts(posts, { mode: 'replace' });
     },
 
     start() {

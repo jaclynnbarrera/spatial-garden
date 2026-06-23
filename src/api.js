@@ -62,3 +62,49 @@ export async function createImagePost({ title, excerpt, file }) {
   }
   return data;
 }
+
+export async function updatePost(id, payload) {
+  const response = await fetch(`/api/posts/${id}`, {
+    method: 'PATCH',
+    headers: writeHeaders('application/json'),
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not update post');
+  }
+  return data;
+}
+
+export async function updateImagePost(id, { title, excerpt, file }) {
+  const formData = new FormData();
+  formData.append('title', title);
+  if (excerpt) formData.append('excerpt', excerpt);
+  if (file) formData.append('image', file);
+
+  const response = await fetch(`/api/posts/${id}/image`, {
+    method: 'PATCH',
+    headers: writeHeaders(),
+    body: formData,
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not update image');
+  }
+  return data;
+}
+
+export async function deletePost(id) {
+  const response = await fetch(`/api/posts/${id}`, {
+    method: 'DELETE',
+    headers: writeHeaders(),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Could not delete post');
+  }
+  return data;
+}

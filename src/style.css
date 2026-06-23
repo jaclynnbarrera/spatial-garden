@@ -577,3 +577,186 @@ body {
 .detail__link:hover {
   background: #222;
 }
+
+.detail__actions:not([hidden]) {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.detail__edit,
+.detail__delete {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 0;
+  font-family: var(--font-mono-ui);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.detail__edit {
+  background: rgba(0, 0, 0, 0.06);
+  color: #111;
+}
+
+.detail__delete {
+  background: #8b1e1e;
+  color: #fff;
+}
+
+.detail__edit:disabled,
+.detail__delete:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.edit {
+  position: fixed;
+  right: 1.5rem;
+  bottom: calc(1.5rem + 3.5rem + 0.75rem);
+  z-index: 50;
+}
+
+.edit__panel {
+  width: min(24rem, calc(100vw - 2rem));
+  padding: 1.1rem 1.15rem 1.2rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+}
+
+.edit__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.edit__eyebrow {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-mono-label);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.edit__title {
+  margin: 0;
+  font-family: var(--font-mono-display);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.edit__close {
+  border: 0;
+  background: transparent;
+  font-family: var(--font-mono-ui);
+  font-size: 1.35rem;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+
+.edit__form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.edit__field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.edit__field label {
+  font-family: var(--font-mono-label);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.edit__field input,
+.edit__field textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+  background: #fff;
+  font-family: var(--font-mono-body);
+  font-size: 0.84rem;
+  color: #111;
+}
+
+.edit__field textarea {
+  resize: vertical;
+}
+
+.edit__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+}
+
+.edit__secondary,
+.edit__submit {
+  border: 0;
+  border-radius: 0;
+  font-family: var(--font-mono-ui);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.edit__secondary {
+  padding: 0.65rem 0.85rem;
+  background: rgba(0, 0, 0, 0.06);
+  color: #111;
+}
+
+.edit__submit {
+  padding: 0.75rem 1rem;
+  background: #111;
+  color: #fff;
+}
+
+.edit__submit:disabled,
+.edit__secondary:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.edit__preview {
+  padding: 0.65rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.edit__preview img {
+  display: block;
+  width: 100%;
+  max-height: 8rem;
+  object-fit: cover;
+}
+
+.edit__preview p {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-mono-body);
+  font-size: 0.76rem;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.edit__error {
+  margin: 0;
+  font-family: var(--font-mono-ui);
+  font-size: 0.78rem;
+  color: #8b1e1e;
+}

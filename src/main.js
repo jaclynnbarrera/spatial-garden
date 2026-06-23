@@ -1,6 +1,8 @@
 import './style.css';
+import { deletePost } from './api.js';
 import { initAdminMode, isAdminMode } from './adminMode.js';
 import { mountComposePanel } from './admin/ComposePanel.js';
+import { mountEditPanel } from './admin/EditPanel.js';
 import { createGarden } from './garden.js';
 
 function mountCanvas(renderer) {
@@ -33,15 +35,28 @@ async function init() {
   initAdminMode();
 
   const garden = createGarden();
+  const isAdmin = isAdminMode();
+  let editPanel = null;
+
   mountHud();
-  const renderer = await garden.init();
+  const renderer = await garden.init({
+    isAdmin,
+    onEdit: (post) => editPanel?.open(post),
+    onDelete: async (post) => {
+      await deletePost(post.id);
+      await garden.refreshPosts();
+    },
+  });
 
   mountCanvas(renderer);
   garden.start();
 
-  if (isAdminMode()) {
+  if (isAdmin) {
     mountComposePanel({
       onPostCreated: () => garden.addPost(),
+    });
+    editPanel = mountEditPanel({
+      onPostUpdated: () => garden.refreshPosts(),
     });
   }
 }

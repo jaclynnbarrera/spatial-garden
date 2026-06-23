@@ -91,4 +91,31 @@ export function getAllPosts() {
   return rows.map(mapRow);
 }
 
+export function updatePost(id, { title, excerpt, url, imagePath }) {
+  const existing = getPostById(id);
+  if (!existing) return null;
+
+  db.prepare(
+    `UPDATE posts
+     SET title = @title, excerpt = @excerpt, url = @url, image_path = @imagePath
+     WHERE id = @id`
+  ).run({
+    id,
+    title,
+    excerpt: excerpt ?? null,
+    url: url ?? null,
+    imagePath: imagePath ?? null,
+  });
+
+  return getPostById(id);
+}
+
+export function deletePost(id) {
+  const post = getPostById(id);
+  if (!post) return null;
+
+  db.prepare('DELETE FROM posts WHERE id = @id').run({ id });
+  return post;
+}
+
 export default db;
