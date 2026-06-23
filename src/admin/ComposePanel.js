@@ -1,3 +1,4 @@
+import gsap from 'gsap';
 import { createImagePost, createPost, previewLink } from '../api.js';
 
 const TYPE_LABELS = {
@@ -13,7 +14,7 @@ export function mountComposePanel({ onPostCreated }) {
     <button type="button" class="compose__toggle" aria-expanded="false" aria-controls="compose-panel">
       +
     </button>
-    <section id="compose-panel" class="compose__panel" hidden>
+    <section id="compose-panel" class="compose__panel" aria-hidden="true">
       <div class="compose__header">
         <div>
           <p class="compose__eyebrow">New save</p>
@@ -83,10 +84,52 @@ export function mountComposePanel({ onPostCreated }) {
   let activeType = 'link';
   let previewData = null;
   let previewObjectUrl = null;
+  let isOpen = false;
+  let panelTween = null;
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  gsap.set(panel, { autoAlpha: 0, y: 14, scale: 0.97, transformOrigin: 'right bottom' });
 
   function setOpen(open) {
+    if (open === isOpen) return;
+
+    if (panelTween) panelTween.kill();
+    isOpen = open;
     toggle.setAttribute('aria-expanded', String(open));
-    panel.hidden = !open;
+    panel.setAttribute('aria-hidden', String(!open));
+
+    if (reducedMotion) {
+      gsap.set(panel, { autoAlpha: open ? 1 : 0, y: 0, scale: 1 });
+      panel.hidden = !open;
+      gsap.set(toggle, { rotate: open ? 45 : 0 });
+      return;
+    }
+
+    if (open) {
+      panel.hidden = false;
+      panelTween = gsap.to(panel, {
+        autoAlpha: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.48,
+        ease: 'expo.out',
+      });
+      gsap.to(toggle, { rotate: 45, duration: 0.38, ease: 'power2.out' });
+      return;
+    }
+
+    panelTween = gsap.to(panel, {
+      autoAlpha: 0,
+      y: 10,
+      scale: 0.98,
+      duration: 0.34,
+      ease: 'power2.in',
+      onComplete: () => {
+        panel.hidden = true;
+      },
+    });
+    gsap.to(toggle, { rotate: 0, duration: 0.32, ease: 'power2.inOut' });
   }
 
   function setError(message = '') {
@@ -139,7 +182,7 @@ export function mountComposePanel({ onPostCreated }) {
     setType(activeType);
   }
 
-  toggle.addEventListener('click', () => setOpen(panel.hidden));
+  toggle.addEventListener('click', () => setOpen(!isOpen));
   close.addEventListener('click', () => setOpen(false));
 
   typeButtons.forEach((button) => {
@@ -248,9 +291,11 @@ export function mountComposePanel({ onPostCreated }) {
   });
 
   setType('link');
+  panel.hidden = true;
 
   return {
     destroy() {
+      if (panelTween) panelTween.kill();
       resetImagePreview();
       root.remove();
     },

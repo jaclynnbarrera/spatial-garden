@@ -195,6 +195,7 @@ body {
   line-height: 1;
   color: #111;
   cursor: pointer;
+  transform-origin: center center;
 }
 
 .compose__panel {
@@ -208,6 +209,8 @@ body {
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(16px);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+  transform-origin: right bottom;
+  will-change: transform, opacity;
 }
 
 .compose__header {
