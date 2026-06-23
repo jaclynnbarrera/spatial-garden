@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import { existsSync } from 'fs';
 import { join } from 'path';
+import { getDataInfo, logDataInfo } from './dataInfo.js';
 import { getAllPosts } from './db.js';
 import { distDir, uploadsDir } from './paths.js';
 import postsRouter from './routes/posts.js';
@@ -15,7 +16,8 @@ app.use(express.json());
 app.use('/uploads', express.static(uploadsDir));
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true });
+  const posts = getAllPosts();
+  res.json({ ok: true, ...getDataInfo(posts.length) });
 });
 
 app.get('/api/posts', (_req, res) => {
@@ -41,5 +43,7 @@ app.use((error, _req, res, _next) => {
 });
 
 app.listen(PORT, () => {
+  const posts = getAllPosts();
+  logDataInfo(posts.length);
   console.log(`Server running on http://localhost:${PORT}`);
 });
