@@ -16,6 +16,7 @@ function mountHud() {
   const hud = document.createElement('div');
   hud.className = 'hud';
   hud.innerHTML = `
+    <p class="hud__brand">resonance.world</p>
     <h1 class="hud__title">Naomi Barrera</h1>
     <p class="hud__copy">Things I save when they resonate.</p>
     <p class="hud__copy">Links, images, notes in 3D space.</p>

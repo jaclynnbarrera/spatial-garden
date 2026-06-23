@@ -16,8 +16,8 @@ export function mountComposePanel({ onPostCreated }) {
     <section id="compose-panel" class="compose__panel" hidden>
       <div class="compose__header">
         <div>
-          <p class="compose__eyebrow">New post</p>
-          <h2 class="compose__title">Add to garden</h2>
+          <p class="compose__eyebrow">New save</p>
+          <h2 class="compose__title">Save something</h2>
         </div>
         <button type="button" class="compose__close" aria-label="Close compose panel">×</button>
       </div>
@@ -45,12 +45,12 @@ export function mountComposePanel({ onPostCreated }) {
 
         <div class="compose__field">
           <label for="compose-title">Title</label>
-          <input id="compose-title" name="title" type="text" placeholder="Title" required />
+          <input id="compose-title" name="title" type="text" placeholder="Title or name" required />
         </div>
 
         <div class="compose__field">
           <label for="compose-excerpt">Excerpt</label>
-          <textarea id="compose-excerpt" name="excerpt" rows="3" placeholder="Your note or pull quote"></textarea>
+          <textarea id="compose-excerpt" name="excerpt" rows="3" placeholder="A note — optional"></textarea>
         </div>
 
         <div class="compose__preview compose__preview--link" data-link-preview hidden>
@@ -60,7 +60,7 @@ export function mountComposePanel({ onPostCreated }) {
 
         <p class="compose__error" hidden></p>
 
-        <button type="submit" class="compose__submit">Save to garden</button>
+        <button type="submit" class="compose__submit">Save</button>
       </form>
     </section>
   `;
@@ -211,7 +211,7 @@ export function mountComposePanel({ onPostCreated }) {
       if (activeType === 'link') {
         const url = form.url.value.trim();
         if (!url) {
-          throw new Error('URL is required for link posts.');
+          throw new Error('URL is required for links.');
         }
 
         await createPost({
@@ -243,7 +243,7 @@ export function mountComposePanel({ onPostCreated }) {
       setError(error.message);
     } finally {
       submit.disabled = false;
-      submit.textContent = 'Save to garden';
+      submit.textContent = 'Save';
     }
   });
 
