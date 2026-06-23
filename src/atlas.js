@@ -49,8 +49,8 @@ async function ensureAtlasFonts() {
   if (!document.fonts?.load) return;
 
   await Promise.all([
-    document.fonts.load('700 42px "Space Mono"'),
-    document.fonts.load('400 28px "IBM Plex Mono"'),
+    document.fonts.load('700 48px "Space Mono"'),
+    document.fonts.load('400 32px "IBM Plex Mono"'),
   ]);
 }
 
@@ -59,24 +59,24 @@ function drawTextCard(ctx, x, y, size, post) {
   ctx.fillRect(x, y, size, size);
 
   ctx.fillStyle = '#111111';
-  ctx.font = '700 42px "Space Mono", monospace';
-  const titleLines = wrapText(ctx, post.title, size - 64).slice(0, 3);
+  ctx.font = '700 48px "Space Mono", monospace';
+  const titleLines = wrapText(ctx, post.title, size - 72).slice(0, 3);
 
-  let cursorY = y + 48;
+  let cursorY = y + 54;
   for (const line of titleLines) {
-    ctx.fillText(line, x + 32, cursorY);
-    cursorY += 48;
+    ctx.fillText(line, x + 36, cursorY);
+    cursorY += 54;
   }
 
   ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
-  ctx.font = '400 28px "IBM Plex Mono", monospace';
+  ctx.font = '400 32px "IBM Plex Mono", monospace';
   const excerpt = post.excerpt || (post.type === 'link' ? post.url : '');
-  const excerptLines = wrapText(ctx, excerpt, size - 64).slice(0, 5);
+  const excerptLines = wrapText(ctx, excerpt, size - 72).slice(0, 5);
 
-  cursorY += 12;
+  cursorY += 14;
   for (const line of excerptLines) {
-    ctx.fillText(line, x + 32, cursorY);
-    cursorY += 36;
+    ctx.fillText(line, x + 36, cursorY);
+    cursorY += 40;
   }
 
   ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
