@@ -28,10 +28,12 @@ export function createDetailView({ getControls, getUniforms, isAdmin = false, on
         </div>
         <h2 class="detail__title" data-title></h2>
         <p class="detail__excerpt" data-excerpt></p>
-        <a class="detail__link" data-link target="_blank" rel="noopener noreferrer" hidden>Open link →</a>
-        <div class="detail__actions" data-actions hidden>
-          <button type="button" class="detail__edit" data-edit>Edit</button>
-          <button type="button" class="detail__delete" data-delete>Delete</button>
+        <div class="detail__footer" data-footer hidden>
+          <a class="detail__link" data-link target="_blank" rel="noopener noreferrer" hidden>Open link →</a>
+          <div class="detail__actions" data-actions hidden>
+            <button type="button" class="detail__edit" data-edit>Edit</button>
+            <button type="button" class="detail__delete" data-delete>Delete</button>
+          </div>
         </div>
       </div>
     </div>
@@ -45,6 +47,7 @@ export function createDetailView({ getControls, getUniforms, isAdmin = false, on
   const dateEl = root.querySelector('[data-date]');
   const titleEl = root.querySelector('[data-title]');
   const excerptEl = root.querySelector('[data-excerpt]');
+  const footerEl = root.querySelector('[data-footer]');
   const linkEl = root.querySelector('[data-link]');
   const actionsEl = root.querySelector('[data-actions]');
   const editBtn = root.querySelector('[data-edit]');
@@ -95,6 +98,7 @@ export function createDetailView({ getControls, getUniforms, isAdmin = false, on
     }
 
     actionsEl.hidden = !isAdmin;
+    footerEl.hidden = linkEl.hidden && actionsEl.hidden;
   }
 
   function getAnimatedContent() {
@@ -109,8 +113,7 @@ export function createDetailView({ getControls, getUniforms, isAdmin = false, on
     if (!dateEl.hidden) items.push(dateEl);
     items.push(titleEl);
     if (!excerptEl.hidden) items.push(excerptEl);
-    if (!linkEl.hidden) items.push(linkEl);
-    if (!actionsEl.hidden) items.push(actionsEl);
+    if (!footerEl.hidden) items.push(footerEl);
 
     return items;
   }
