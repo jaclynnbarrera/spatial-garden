@@ -20,8 +20,9 @@ export function createDetailView({ getControls, getUniforms, isAdmin = false, on
     <div class="detail-backdrop" data-backdrop></div>
     <div class="detail-panel" data-panel>
       <button type="button" class="detail__close" aria-label="Close">×</button>
-      <div class="detail__media" data-media hidden></div>
-      <div class="detail__body">
+      <div class="detail__scroll">
+        <div class="detail__media" data-media hidden></div>
+        <div class="detail__body">
         <div class="detail__meta">
           <p class="detail__type" data-type></p>
           <p class="detail__date" data-date hidden></p>
@@ -34,6 +35,7 @@ export function createDetailView({ getControls, getUniforms, isAdmin = false, on
             <button type="button" class="detail__edit" data-edit>Edit</button>
             <button type="button" class="detail__delete" data-delete>Delete</button>
           </div>
+        </div>
         </div>
       </div>
     </div>
