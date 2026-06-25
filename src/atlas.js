@@ -19,7 +19,12 @@ function drawImageCover(ctx, img, x, y, width, height) {
   const offsetX = x + (width - drawWidth) / 2;
   const offsetY = y + (height - drawHeight) / 2;
 
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, width, height);
+  ctx.clip();
   ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+  ctx.restore();
 
   ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
   ctx.lineWidth = 2;
@@ -86,8 +91,21 @@ function drawTextCard(ctx, x, y, size, post) {
 
 export const CELL_SIZE = 512;
 
+async function loadPostImage(post) {
+  if (!post.imagePath) return null;
+
+  try {
+    return await loadImage(post.imagePath);
+  } catch {
+    return null;
+  }
+}
+
 export async function buildAtlas(posts) {
-  await ensureAtlasFonts();
+  const [, images] = await Promise.all([
+    ensureAtlasFonts(),
+    Promise.all(posts.map((post) => loadPostImage(post))),
+  ]);
 
   const count = posts.length;
   const cols = Math.ceil(Math.sqrt(count));
@@ -113,8 +131,8 @@ export async function buildAtlas(posts) {
     const x = col * CELL_SIZE;
     const y = row * CELL_SIZE;
 
-    if (post.imagePath) {
-      const img = await loadImage(post.imagePath);
+    const img = images[index];
+    if (img) {
       drawImageCover(ctx, img, x, y, CELL_SIZE, CELL_SIZE);
     } else {
       drawTextCard(ctx, x, y, CELL_SIZE, post);

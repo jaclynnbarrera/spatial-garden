@@ -39,7 +39,8 @@ async function init() {
   let editPanel = null;
 
   mountHud();
-  const renderer = await garden.init({
+
+  const renderer = garden.setup({
     isAdmin,
     onEdit: (post) => editPanel?.open(post),
     onDelete: async (post) => {
@@ -50,6 +51,17 @@ async function init() {
 
   mountCanvas(renderer);
   garden.start();
+
+  garden.loadInitialPosts().catch((error) => {
+    console.error(error);
+    document.querySelector('#app').innerHTML = `
+      <div class="error">
+        <h1>Could not load</h1>
+        <p>Make sure the API is running: <code>npm run dev:server</code></p>
+        <pre>${error.message}</pre>
+      </div>
+    `;
+  });
 
   if (isAdmin) {
     mountComposePanel({

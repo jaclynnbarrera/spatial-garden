@@ -13,10 +13,10 @@ void main() {
   float col = mod(index, uGridSize.x);
   float row = floor(index / uGridSize.x);
 
-  vec2 cellUv = vec2(
-    (col + gl_PointCoord.x) / uGridSize.x,
-    (row + gl_PointCoord.y) / uGridSize.y
-  );
+  vec2 cellSize = vec2(1.0 / uGridSize.x, 1.0 / uGridSize.y);
+  vec2 cellOrigin = vec2(col, row) * cellSize;
+  vec2 inset = cellSize * 0.002;
+  vec2 cellUv = cellOrigin + inset + gl_PointCoord * (cellSize - inset * 2.0);
 
   vec4 color = texture2D(uAtlas, cellUv);
 

@@ -37,6 +37,8 @@ export function createParticles(posts, atlas) {
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
   texture.flipY = false;
 
   const material = new THREE.ShaderMaterial({

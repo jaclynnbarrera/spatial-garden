@@ -23,10 +23,16 @@ export function createGarden() {
     posts: [],
     hover: null,
     detail: null,
+    renderGeneration: 0,
+    postsPromise: null,
   };
 
   async function renderPosts(posts, { mode = 'scatter' } = {}) {
+    const generation = ++state.renderGeneration;
     const atlas = await buildAtlas(posts);
+
+    if (generation !== state.renderGeneration) return;
+
     const particleData = createParticles(posts, atlas);
 
     if (state.mesh) {
@@ -86,8 +92,8 @@ export function createGarden() {
   }
 
   return {
-    async init({ isAdmin = false, onEdit, onDelete } = {}) {
-      const posts = await fetchPosts();
+    setup({ isAdmin = false, onEdit, onDelete } = {}) {
+      state.postsPromise = fetchPosts();
 
       const { scene, camera, renderer } = createScene();
       state.scene = scene;
@@ -109,9 +115,12 @@ export function createGarden() {
         detail: state.detail,
       });
 
-      await renderPosts(posts, { mode: 'scatter' });
-
       return renderer;
+    },
+
+    async loadInitialPosts() {
+      const posts = await state.postsPromise;
+      await renderPosts(posts, { mode: 'scatter' });
     },
 
     async addPost() {
