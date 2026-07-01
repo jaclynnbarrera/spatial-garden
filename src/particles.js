@@ -3,6 +3,10 @@ import { getTextureIndex } from './atlas.js';
 import fragmentShader from './shaders/particle.frag?raw';
 import vertexShader from './shaders/particle.vert?raw';
 
+// Pulls stored positions inward so the whole world reads as one cluster you
+// can take in at once, rather than being spread across a wide cube.
+const WORLD_COMPRESSION = 0.62;
+
 export function createParticles(posts, atlas) {
   const { canvas, cols, rows, pathToIndex } = atlas;
   const count = posts.length;
@@ -20,9 +24,9 @@ export function createParticles(posts, atlas) {
     positions[i3 + 1] = 0;
     positions[i3 + 2] = 0;
 
-    targetPositions[i3] = tx;
-    targetPositions[i3 + 1] = ty;
-    targetPositions[i3 + 2] = tz;
+    targetPositions[i3] = tx * WORLD_COMPRESSION;
+    targetPositions[i3 + 1] = ty * WORLD_COMPRESSION;
+    targetPositions[i3 + 2] = tz * WORLD_COMPRESSION;
 
     textureIndices[i] = getTextureIndex(post, pathToIndex);
     particleIndices[i] = i;

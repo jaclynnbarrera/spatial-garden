@@ -25,9 +25,9 @@ db.exec(`
 
 function randomPosition() {
   return [
-    (Math.random() - 0.5) * 40,
-    (Math.random() - 0.5) * 40,
-    (Math.random() - 0.5) * 40,
+    (Math.random() - 0.5) * 28,
+    (Math.random() - 0.5) * 28,
+    (Math.random() - 0.5) * 28,
   ];
 }
 
