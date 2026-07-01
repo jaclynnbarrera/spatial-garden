@@ -4,6 +4,7 @@ import { initAdminMode, isAdminMode } from './adminMode.js';
 import { mountComposePanel } from './admin/ComposePanel.js';
 import { mountEditPanel } from './admin/EditPanel.js';
 import { createGarden } from './garden.js';
+import { mountMusicPlayer } from './music/player.js';
 
 function mountCanvas(renderer) {
   const app = document.querySelector('#app');
@@ -23,9 +24,9 @@ function mountHud() {
     <p class="hud__copy">Things I save when they resonate.</p>
     <p class="hud__copy">Links, images, notes in 3D space.</p>
     <ul class="hud__instructions">
-      <li>Scroll to explore</li>
-      <li>Drag to orbit</li>
-      <li>Click anything</li>
+      <li>Scroll to zoom in & out</li>
+      <li>Click + Drag to orbit</li>
+      <li>Click cards for details</li>
     </ul>
   `;
   document.body.appendChild(hud);
@@ -39,6 +40,7 @@ async function init() {
   let editPanel = null;
 
   mountHud();
+  mountMusicPlayer();
 
   const renderer = garden.setup({
     isAdmin,
