@@ -5,7 +5,7 @@ const VOID_COLOR = '#f6f6f4';
 export function createScene() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(VOID_COLOR);
-  scene.fog = new THREE.FogExp2(VOID_COLOR, 0.006);
+  scene.fog = new THREE.FogExp2(VOID_COLOR, 0.004);
 
   const camera = new THREE.PerspectiveCamera(
     60,
@@ -13,7 +13,7 @@ export function createScene() {
     0.1,
     500
   );
-  camera.position.set(0, 0, 19);
+  camera.position.set(0, 0, 14);
 
   const renderer = new THREE.WebGLRenderer({
     antialias: true,

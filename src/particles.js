@@ -5,7 +5,7 @@ import vertexShader from './shaders/particle.vert?raw';
 
 // Pulls stored positions inward so the whole world reads as one cluster you
 // can take in at once, rather than being spread across a wide cube.
-const WORLD_COMPRESSION = 0.62;
+const WORLD_COMPRESSION = 0.48;
 
 export function createParticles(posts, atlas) {
   const { canvas, cols, rows, pathToIndex } = atlas;
@@ -49,10 +49,10 @@ export function createParticles(posts, atlas) {
     uniforms: {
       uAtlas: { value: texture },
       uGridSize: { value: new THREE.Vector2(cols, rows) },
-      uBaseSize: { value: 640 },
-      uScale: { value: 1.15 },
-      uMinSize: { value: 120 },
-      uMaxSize: { value: 880 },
+      uBaseSize: { value: 800 },
+      uScale: { value: 1.38 },
+      uMinSize: { value: 155 },
+      uMaxSize: { value: 1020 },
       uHoveredIndex: { value: -1 },
       uHoverAmount: { value: 0 },
       uHoverScale: { value: 1.58 },
