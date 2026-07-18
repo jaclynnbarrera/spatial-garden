@@ -7,6 +7,18 @@ import vertexShader from './shaders/particle.vert?raw';
 // can take in at once, rather than being spread across a wide cube.
 const WORLD_COMPRESSION = 0.48;
 
+// Mirrors the spread used by randomPosition() in server/db.js, pre-compressed
+// to world space so shuffled cards land in the same cluster as stored ones.
+const WORLD_SPREAD = 22;
+
+export function randomWorldPosition() {
+  return [
+    (Math.random() - 0.5) * WORLD_SPREAD * WORLD_COMPRESSION,
+    (Math.random() - 0.5) * WORLD_SPREAD * WORLD_COMPRESSION,
+    (Math.random() - 0.5) * WORLD_SPREAD * WORLD_COMPRESSION,
+  ];
+}
+
 export function createParticles(posts, atlas) {
   const { canvas, cols, rows, pathToIndex } = atlas;
   const count = posts.length;

@@ -47,6 +47,36 @@ export function animateScatterIn({ positions, targetPositions, onUpdate }) {
   return timeline;
 }
 
+export function animateShuffle({ positions, targetPositions, onUpdate }) {
+  const count = positions.length / 3;
+  const timeline = gsap.timeline();
+
+  for (let i = 0; i < count; i++) {
+    const i3 = i * 3;
+    const proxy = { x: positions[i3], y: positions[i3 + 1], z: positions[i3 + 2] };
+
+    timeline.to(
+      proxy,
+      {
+        x: targetPositions[i3],
+        y: targetPositions[i3 + 1],
+        z: targetPositions[i3 + 2],
+        duration: 1.7,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          positions[i3] = proxy.x;
+          positions[i3 + 1] = proxy.y;
+          positions[i3 + 2] = proxy.z;
+          onUpdate();
+        },
+      },
+      Math.random() * 0.35
+    );
+  }
+
+  return timeline;
+}
+
 export function animateParticleIn({ positions, targetPositions, index, onUpdate }) {
   const i3 = index * 3;
 

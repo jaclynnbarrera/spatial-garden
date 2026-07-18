@@ -1,10 +1,10 @@
 import { buildAtlas } from './atlas.js';
-import { animateParticleIn, animateScatterIn } from './animations.js';
+import { animateParticleIn, animateScatterIn, animateShuffle } from './animations.js';
 import { fetchPosts } from './api.js';
 import { createControls } from './controls.js';
 import { createDetailView } from './detail.js';
 import { createHoverController } from './interaction.js';
-import { createParticles } from './particles.js';
+import { createParticles, randomWorldPosition } from './particles.js';
 import { createScene } from './scene.js';
 
 function disposePoints(mesh) {
@@ -25,7 +25,14 @@ export function createGarden() {
     detail: null,
     renderGeneration: 0,
     postsPromise: null,
+    particleData: null,
+    positionTween: null,
   };
+
+  function setPositionTween(tween) {
+    state.positionTween?.kill();
+    state.positionTween = tween;
+  }
 
   async function renderPosts(posts, { mode = 'scatter' } = {}) {
     const generation = ++state.renderGeneration;
@@ -36,6 +43,7 @@ export function createGarden() {
     const particleData = createParticles(posts, atlas);
 
     if (state.mesh) {
+      setPositionTween(null);
       state.scene.remove(state.mesh);
       disposePoints(state.mesh);
     }
@@ -43,6 +51,7 @@ export function createGarden() {
     state.mesh = particleData.mesh;
     state.scene.add(state.mesh);
     state.posts = posts;
+    state.particleData = particleData;
     state.hover?.reset();
     state.detail?.forceClose();
 
@@ -51,11 +60,13 @@ export function createGarden() {
     };
 
     if (mode === 'scatter') {
-      animateScatterIn({
-        positions: particleData.positions,
-        targetPositions: particleData.targetPositions,
-        onUpdate: markDirty,
-      });
+      setPositionTween(
+        animateScatterIn({
+          positions: particleData.positions,
+          targetPositions: particleData.targetPositions,
+          onUpdate: markDirty,
+        })
+      );
       return;
     }
 
@@ -71,12 +82,14 @@ export function createGarden() {
 
       markDirty();
 
-      animateParticleIn({
-        positions: particleData.positions,
-        targetPositions: particleData.targetPositions,
-        index: lastIndex,
-        onUpdate: markDirty,
-      });
+      setPositionTween(
+        animateParticleIn({
+          positions: particleData.positions,
+          targetPositions: particleData.targetPositions,
+          index: lastIndex,
+          onUpdate: markDirty,
+        })
+      );
       return;
     }
 
@@ -131,6 +144,32 @@ export function createGarden() {
     async refreshPosts() {
       const posts = await fetchPosts();
       await renderPosts(posts, { mode: 'replace' });
+    },
+
+    shuffle() {
+      const particleData = state.particleData;
+      if (!particleData) return;
+
+      state.hover?.reset();
+      state.detail?.forceClose();
+
+      for (let i = 0; i < state.posts.length; i += 1) {
+        const [x, y, z] = randomWorldPosition();
+        const i3 = i * 3;
+        particleData.targetPositions[i3] = x;
+        particleData.targetPositions[i3 + 1] = y;
+        particleData.targetPositions[i3 + 2] = z;
+      }
+
+      setPositionTween(
+        animateShuffle({
+          positions: particleData.positions,
+          targetPositions: particleData.targetPositions,
+          onUpdate: () => {
+            particleData.geometry.attributes.position.needsUpdate = true;
+          },
+        })
+      );
     },
 
     start() {
