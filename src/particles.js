@@ -5,7 +5,7 @@ import vertexShader from './shaders/particle.vert?raw';
 
 // Pulls stored positions inward so the whole world reads as one cluster you
 // can take in at once, rather than being spread across a wide cube.
-const WORLD_COMPRESSION = 0.48;
+const WORLD_COMPRESSION = 0.78;
 
 // Mirrors the spread used by randomPosition() in server/db.js, pre-compressed
 // to world space so shuffled cards land in the same cluster as stored ones.
@@ -62,9 +62,9 @@ export function createParticles(posts, atlas) {
       uAtlas: { value: texture },
       uGridSize: { value: new THREE.Vector2(cols, rows) },
       uBaseSize: { value: 800 },
-      uScale: { value: 1.38 },
-      uMinSize: { value: 155 },
-      uMaxSize: { value: 1020 },
+      uScale: { value: 1.05 },
+      uMinSize: { value: 95 },
+      uMaxSize: { value: 780 },
       uHoveredIndex: { value: -1 },
       uHoverAmount: { value: 0 },
       uHoverScale: { value: 1.58 },
